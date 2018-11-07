@@ -103,14 +103,15 @@ class IDL:
 				return False
 		
 		# We are all good
-		logging.debug("OK, instruction %s ran successfuly.", instruction) 
+		logging.debug("OK, instruction %s ran successfuly.", instruction)
 		return True
 
 class SSWIDL(IDL):
 	"""Run an IDL session configured for SSW and allow to run IDL and SSW commands in it"""
-	def __init__(self, csh = "/bin/csh", SSW_path = "/usr/local/ssw", SSW_instruments = [], logfile = None):
+	def __init__(self, csh = "/bin/csh", SSW_path = "/usr/local/ssw", SSWDB_path = "/usr/local/sswdb", SSW_instruments = [], logfile = None):
 		self.csh = csh
 		self.SSW_path = SSW_path
+		self.SSWDB_path = SSWDB_path
 		self.SSW_instruments = SSW_instruments
 		self.logfile = logfile
 		self.session = None
@@ -130,7 +131,7 @@ class SSWIDL(IDL):
 			return False
 		
 		# We are all good
-		logging.debug("OK, instruction %s ran successfuly.", instruction) 
+		logging.debug("OK, instruction %s ran successfuly.", instruction)
 		return True
 	
 	def start(self):
@@ -144,6 +145,13 @@ class SSWIDL(IDL):
 			os.environ["SSW"] = self.SSW_path
 		else:
 			raise ValueError("SSW path is not a directory")
+		
+		if os.path.isdir(self.SSWDB_path):
+			os.environ["SSWDB"] = self.SSWDB_path
+			os.environ["SDB"] = self.SSWDB_path
+		else:
+			raise ValueError("SSWDB path is not a directory")
+		
 		os.environ["SSW_INSTR"] = " ".join(self.SSW_instruments)
 		
 		
@@ -160,4 +168,3 @@ class SSWIDL(IDL):
 		self.__run_csh("exec `alias sswidl` nox", timeout=self.start_wait_time)
 		
 		return True
-
