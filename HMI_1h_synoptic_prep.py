@@ -12,14 +12,14 @@ import threading
 from IDL import SSWIDL
 
 
-# The base directory of the input fits files
-input_file_dir = "/data/SDO/public/AIA_HMI_1h_synoptic/aia.lev1"
+# The base directory of the input FITS files
+input_file_dir = "/data/SDO/public/AIA_HMI_1h_synoptic/"
 # The pattern of the input filenames
-input_file_pattern = "{wavelength:04d}/{year:04d}/{month:02d}/{day:02d}/*.fits"
-# The base directory of the outpout fits files
-output_file_dir = "/data/SDO/public/AIA_HMI_1h_synoptic/aia.lev1.prepped"
+input_file_pattern = "{channel}/{year:04d}/{month:02d}/{day:02d}/*.fits"
+# The base directory of the outpout FITS files
+output_file_dir = "/data/SDO/public/AIA_HMI_1h_synoptic/"
 # The pattern of the output filenames
-output_file_pattern = "{wavelength:04d}/{year:04d}/{month:02d}/{day:02d}/{filename}_prepped.fits"
+output_file_pattern = "{channel}.prepped/{year:04d}/{month:02d}/{day:02d}/{filename}_prepped.fits"
 # The default duration to process before now. Must be a timedelta
 past_duration = timedelta(days=30)
 # The maximum nuber of jobs that can be run before restarting IDL
@@ -85,7 +85,7 @@ def terminate_gracefully(signal, frame):
 if __name__ == "__main__":
 		
 	# Get the arguments
-	parser = argparse.ArgumentParser(description='Call the IDL aia_prep on AIA FITS files')
+	parser = argparse.ArgumentParser(description='Call the IDL aia_prep on HMI FITS files')
 	parser.add_argument('--debug', '-d', default=False, action='store_true', help='Debug output to screen')
 	parser.add_argument('--verbose', '-v', default=False, action='store_true', help='Verbose output to screen')
 	parser.add_argument('--force', '-f', default=False, action='store_true', help='Force to aia_prep files that have already been prepped')
@@ -93,7 +93,7 @@ if __name__ == "__main__":
 	parser.add_argument('--end_date', '-e', default=datetime.utcnow().isoformat(), type=str, help='End date of data to prep')
 	parser.add_argument('--number_threads', '-n', default=4, type=int, help='Number of files to prep in parralel')
 	parser.add_argument('--timeout', '-t', default=120, type=int, help='Timeout for the prepping of 1 file')
-	parser.add_argument('--wavelengths', '-w', default=[171,193,304], type=int, nargs='+', help='The wavelengths to prep')
+	parser.add_argument('--channels', '-c', default=['hmi.m_45s', 'hmi.ic_45s'], nargs='+', help='The HMI channels to prep')
 	args = parser.parse_args()
 	
 	# Setup the logging
@@ -140,14 +140,14 @@ if __name__ == "__main__":
 	# Search the filenames and feed them to the threads
 	while date < end_date:
 		
-		for wavelength in args.wavelengths:
-			filenames = os.path.join(input_file_dir, input_file_pattern.format(year = date.year, month = date.month, day = date.day, wavelength = wavelength))
+		for channel in args.channels:
+			filenames = os.path.join(input_file_dir, input_file_pattern.format(year = date.year, month = date.month, day = date.day, channel = channel))
 			logging.debug("Looking for files %s", filenames)
 			filenames = sorted(glob(filenames))
 			logging.debug("Found files %s", filenames)
 			
 			for filename in filenames:
-				output_filename = output_file_pattern.format(year = date.year, month = date.month, day = date.day, wavelength = wavelength, filename = os.path.splitext(os.path.basename(filename))[0])
+				output_filename = output_file_pattern.format(year = date.year, month = date.month, day = date.day, channel = channel, filename = os.path.splitext(os.path.basename(filename))[0])
 				outdir, outfile = os.path.split(os.path.join(output_file_dir, output_filename))
 				
 				# We make sure the file has not already been preprocessed

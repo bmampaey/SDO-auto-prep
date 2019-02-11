@@ -108,11 +108,12 @@ class IDL:
 
 class SSWIDL(IDL):
 	"""Run an IDL session configured for SSW and allow to run IDL and SSW commands in it"""
-	def __init__(self, csh = "/bin/csh", SSW_path = "/usr/local/ssw", SSWDB_path = "/usr/local/sswdb", SSW_instruments = [], logfile = None):
+	def __init__(self, csh = "/bin/csh", SSW_path = "/usr/local/ssw", SSWDB_path = "/usr/local/sswdb", SSW_instruments = [], IDL_STARTUP_path = None, logfile = None):
 		self.csh = csh
 		self.SSW_path = SSW_path
 		self.SSWDB_path = SSWDB_path
 		self.SSW_instruments = SSW_instruments
+		self.IDL_STARTUP_path = IDL_STARTUP_path
 		self.logfile = logfile
 		self.session = None
 	
@@ -154,6 +155,11 @@ class SSWIDL(IDL):
 		
 		os.environ["SSW_INSTR"] = " ".join(self.SSW_instruments)
 		
+		if self.IDL_STARTUP_path is not None:
+			if os.path.isfile(self.IDL_STARTUP_path):
+				os.environ["IDL_STARTUP"] = self.IDL_STARTUP_path
+			else:
+				raise ValueError("IDL_STARTUP path is not a file")
 		
 		# We try to start a csh prompt
 		try:
